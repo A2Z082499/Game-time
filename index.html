@@ -166,6 +166,7 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
   <footer>© Pickle Time · Bookings are saved live</footer>
 </main>
 <script>
+var SUPABASE_URL="https://lgpfgkqjfpkbwbixplee.supabase.co",SUPABASE_KEY="paste-your-publishable-key-here";
 const $=id=>document.getElementById(id),OPEN=6,CLOSE=22,MAXD=30;
 const ap=h=>h<12?'AM':'PM',n12=h=>(h+11)%12+1;
 const label=h=>ap(h)===ap(h+1)?`${n12(h)}:00-${n12(h+1)}:00 ${ap(h)}`:`${n12(h)}:00 ${ap(h)}-${n12(h+1)}:00 ${ap(h+1)}`;
