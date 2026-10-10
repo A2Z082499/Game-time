@@ -108,6 +108,17 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
 .tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.85rem}th{font-size:.62rem;letter-spacing:.1em;color:var(--muted);text-align:left}th,td{padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left}
 .x{border:1.5px solid #e0493f;color:#e0493f;background:none;border-radius:8px;padding:5px 10px;font-weight:700;font-size:.75rem}.x.arm{background:#e0493f;color:#fff}
 @media(max-width:600px){.flt{grid-template-columns:1fr}.stats{grid-template-columns:1fr}}
+
+.payback{position:fixed;inset:0;background:#050d1ccc;display:grid;place-items:center;padding:16px;z-index:50;overflow:auto}
+.payback[hidden]{display:none}
+.paybox{background:var(--card);color:var(--ink);border-radius:18px;border-top:4px solid var(--gold);padding:24px;width:100%;max-width:400px;display:grid;gap:12px;box-shadow:0 24px 70px #000a}
+.paybox h2{margin:0}
+.payamt{display:flex;justify-content:space-between;align-items:center;background:var(--off);border-radius:12px;padding:12px 14px}
+.payamt b{font-size:1.5rem;color:var(--blue)}
+.paybox img{width:100%;max-width:240px;justify-self:center;border-radius:12px;border:1.5px solid var(--line);background:#fff}
+.paynum{display:grid;gap:2px;text-align:center}
+.paynum b{font-size:1.4rem;letter-spacing:.04em}
+.paybox ol{margin:0;padding-left:20px;font-size:.85rem;color:var(--muted);display:grid;gap:4px}
 </style>
 </head>
 <body>
@@ -165,9 +176,20 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
     </div></div></section>
   <footer>© Pickle Time · Bookings are saved live</footer>
 </main>
+<div class="payback" id="pay" hidden><div class="paybox" role="dialog" aria-modal="true" aria-labelledby="payT">
+<div class="eyebrow">BOOKING RECEIVED</div><h2 id="payT">Pay with GCash</h2>
+<p class="m" id="paySum"></p>
+<div class="payamt"><span>Amount to pay</span><b id="payAmt"></b></div>
+<img id="payQr" alt="GCash QR code" hidden>
+<div class="paynum"><span class="m">GCash number</span><b id="payNum"></b><span class="m" id="payName"></span><button type="button" class="link" id="payCopy">Copy number</button></div>
+<ol><li>Open GCash, then scan the QR or send to the number above.</li><li>Pay the exact amount shown.</li><li>Send your payment screenshot to us with your name and booking date.</li></ol>
+<a class="cta block" id="payMsg" target="_blank" rel="noopener" hidden>Send screenshot on Messenger</a>
+<button type="button" class="link" id="payClose">Close</button>
+</div></div>
 <script>
-var GCASH_NUMBER="0993 802 3008",GCASH_NAME="Meshal Q.",GCASH_QR="gcash-qr.png",CONTACT_LINK="https://www.facebook.com/meshalquiron";
 var SUPABASE_URL="https://lgpfgkqjfpkbwbixplee.supabase.co",SUPABASE_KEY="sb_publishable_mTz9KXbimnwuGG4rWwpPuA_hIND2ph9";
+/* Payment settings: edit these */
+var GCASH_NUMBER="09XX XXX XXXX",GCASH_NAME="Account name here",GCASH_QR="gcash-qr.png",CONTACT_LINK="";
 const $=id=>document.getElementById(id),OPEN=6,CLOSE=22,MAXD=30;
 const ap=h=>h<12?'AM':'PM',n12=h=>(h+11)%12+1;
 const label=h=>ap(h)===ap(h+1)?`${n12(h)}:00-${n12(h+1)}:00 ${ap(h)}`:`${n12(h)}:00 ${ap(h)}-${n12(h+1)}:00 ${ap(h+1)}`;
@@ -210,6 +232,16 @@ $('prev').onclick=()=>{week=add(week,-7);if(week<today)week=today;days()};
 $('next').onclick=()=>{week=add(week,7);days()};
 $('clear').onclick=()=>{picked.clear();slots();panel()};
 const say=(t,c)=>{$('msg').className=c||'';$('msg').textContent=t};
+function showPay(r,d){
+ $('paySum').textContent=fmt(d,{weekday:'long',month:'long',day:'numeric'})+' · '+r.booked.map(label).join(', ');
+ $('payAmt').textContent=peso(r.total);$('payNum').textContent=GCASH_NUMBER;$('payName').textContent=GCASH_NAME;
+ const q=$('payQr');q.onload=()=>{q.hidden=false};q.onerror=()=>{q.hidden=true};q.src=GCASH_QR;
+ const m=$('payMsg');m.hidden=!CONTACT_LINK;if(CONTACT_LINK)m.href=CONTACT_LINK;
+ $('payCopy').textContent='Copy number';$('pay').hidden=false}
+$('payClose').onclick=()=>{$('pay').hidden=true};
+$('pay').onclick=e=>{if(e.target===$('pay'))$('pay').hidden=true};
+$('payCopy').onclick=()=>{const b=$('payCopy'),t=GCASH_NUMBER.replace(/\s/g,'');
+ try{navigator.clipboard.writeText(t).then(()=>{b.textContent='Copied!'},()=>{b.textContent='Copy failed'})}catch(e){b.textContent='Copy failed'}};
 async function loadSlots(){try{const r=await api('/api/slots?from='+today);takenSet.clear();r.forEach(x=>takenSet.add(x.date+'|'+x.hour));
  picked.forEach(h=>taken(sel,h)&&picked.delete(h));slots();panel()}catch(x){}}
 $('form').onsubmit=async e=>{e.preventDefault();
@@ -217,7 +249,7 @@ $('form').onsubmit=async e=>{e.preventDefault();
  try{const r=await api('/api/bookings',{method:'POST',body:JSON.stringify({name:$('name').value.trim(),phone:$('phone').value.trim(),date:d,hours:[...picked]})});
   picked=new Set();if(r.booked.length)f.reset();await loadSlots();
   if(!r.booked.length)say('Sorry, those hours were just taken. Please pick other times.','err');
-  else say(`Booked ${r.booked.length} hour${r.booked.length>1?'s':''}! Pay ${peso(r.total)} at the court.`+(r.failed.length?` ${r.failed.length} hour(s) were taken by someone else.`:''),'ok')}
+  else{showPay(r,d);say(`Booked ${r.booked.length} hour${r.booked.length>1?'s':''}! Please complete your GCash payment.`+(r.failed.length?` ${r.failed.length} hour(s) were taken by someone else.`:''),'ok')}}
  catch(x){say(x.message==='Error'||x.message==='Failed to fetch'?'Could not reach the server. Please try again.':x.message,'err')}
  btn.disabled=false};
 
