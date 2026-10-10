@@ -166,7 +166,7 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
   <footer>© Pickle Time · Bookings are saved live</footer>
 </main>
 <script>
-var SUPABASE_URL="https://lgpfgkqjfpkbwbixplee.supabase.co",SUPABASE_KEY="paste-your-publishable-key-here";
+var SUPABASE_URL="https://lgpfgkqjfpkbwbixplee.supabase.co",SUPABASE_KEY="sb_publishable_mTz9KXbimnwuGG4rWwpPuA_hIND2ph9";
 const $=id=>document.getElementById(id),OPEN=6,CLOSE=22,MAXD=30;
 const ap=h=>h<12?'AM':'PM',n12=h=>(h+11)%12+1;
 const label=h=>ap(h)===ap(h+1)?`${n12(h)}:00-${n12(h+1)}:00 ${ap(h)}`:`${n12(h)}:00 ${ap(h)}-${n12(h+1)}:00 ${ap(h+1)}`;
@@ -178,7 +178,11 @@ const dt=d=>new Date(d+'T00:00:00Z'),fmt=(d,o)=>dt(d).toLocaleDateString('en',{.
 const maxDate=add(today,MAXD);
 const takenSet=new Set(),esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const taken=(d,h)=>takenSet.has(d+'|'+h);
-const api=async(url,o={})=>{const r=await fetch(url,{credentials:'same-origin',...o,headers:{'Content-Type':'application/json'}});let j={};try{j=await r.json()}catch{}if(!r.ok)throw Object.assign(new Error(j.error||'Error'),{status:r.status});return j};
+const SB=async(fn,body)=>{const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/'+fn,{method:'POST',headers:Object.assign({'Content-Type':'application/json',apikey:SUPABASE_KEY},SUPABASE_KEY.indexOf('eyJ')===0?{Authorization:'Bearer '+SUPABASE_KEY}:{}),body:JSON.stringify(body)});let j={};try{j=await r.json()}catch{}if(!r.ok)throw Object.assign(new Error(j.message||'Error'),{status:r.status});return j};
+const api=async(url,o={})=>{
+ if(url.startsWith('/api/slots'))return SB('get_slots',{p_from:today});
+ if(url==='/api/bookings'){const b=JSON.parse(o.body);return SB('book_hours',{p_name:b.name,p_phone:b.phone,p_date:b.date,p_hours:b.hours})}
+ throw Object.assign(new Error('Admin is managed in Supabase'),{status:404})};
 let all=[],adminOn=false,isAdmin=false;
 let sel=today,week=today,picked=new Set();
 const isPast=(d,h)=>d<today||(d===today&&h<nowH);
@@ -238,7 +242,7 @@ $('aT').onclick=async e=>{const b=e.target.closest('.x');if(!b)return;
 $('aCsv').onclick=()=>{location.href='/api/admin/export.csv'};
 function view(on){adminOn=on;document.querySelectorAll('.pub').forEach(el=>el.hidden=on);$('adminView').hidden=!on;
  $('navAdmin').classList.toggle('on',on);$('navBook').classList.toggle('on',!on);if(on){scrollTo(0,0);loadAdmin()}}
-$('navAdmin').onclick=e=>{e.preventDefault();view(true)};$('aBack').onclick=()=>view(false);
+$('navAdmin').style.display='none';$('navAdmin').onclick=e=>{e.preventDefault();view(true)};$('aBack').onclick=()=>view(false);
 $('navBook').addEventListener('click',()=>{if(adminOn)view(false)});
 setInterval(()=>{loadSlots();if(adminOn&&isAdmin)loadAdmin()},15000);
 
