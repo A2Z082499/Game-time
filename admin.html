@@ -73,8 +73,8 @@ input:focus,select:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4px
 <main class="wrap">
   <form id="login" class="card">
     <h1>Admin login</h1>
-    <p class="m">Use the admin account you created in Supabase.</p>
-    <input id="em" type="email" placeholder="Email" autocomplete="username" required>
+    <p class="m">Log in with your admin username and password.</p>
+    <input id="em" type="text" placeholder="Username" autocomplete="username" autocapitalize="none" required>
     <input id="pw" type="password" placeholder="Password" autocomplete="current-password" required>
     <p id="err" role="status"></p>
     <button class="btn block" type="submit">Log in</button>
@@ -169,7 +169,7 @@ async function load(){
 }
 function show(on){$('login').hidden=on;$('app').hidden=!on;$('out').hidden=!on;clearInterval(timer);if(on)timer=setInterval(load,15000)}
 $('login').onsubmit=async e=>{e.preventDefault();$('err').textContent='';const b=e.target.querySelector('button');b.disabled=true;
-  try{await auth('password',{email:$('em').value.trim(),password:$('pw').value});$('pw').value='';await load()}catch(x){$('err').textContent=x.message}b.disabled=false};
+  try{await auth('password',{email:(v=>v.includes('@')?v:v+'@admin.com')($('em').value.trim().toLowerCase()),password:$('pw').value});$('pw').value='';await load()}catch(x){$('err').textContent=x.message}b.disabled=false};
 $('out').onclick=()=>{save(null);rows=[];show(false)};
 $('tabs').onclick=e=>{const b=e.target.closest('.tab');if(b){tab=b.dataset.t;render()}};
 $('q').oninput=$('d').oninput=render;
