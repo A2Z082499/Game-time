@@ -127,7 +127,7 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
   <h4>BOOK A COURT</h4>
   <a class="item on" id="navBook" href="#avail"><i>01</i><div>Court 1<small>Now booking</small></div></a>
   <div class="item dim"><i>+</i><div>More courts<small>Coming soon</small></div></div>
-  <a class="item admin" id="navAdmin" href="#"><i>A</i><div>Admin<small>Management</small></div></a>
+  <a class="item admin" id="navAdmin" href="admin.html"><i>A</i><div>Admin<small>Log in to manage bookings</small></div></a>
 </aside>
 <main>
   <div class="top pub"><span class="pill">OPEN DAILY</span><b>Court Hours: 6:00AM to 10:00PM</b><span>₱180/hour 6AM–4PM | ₱230/hour 4PM–10PM</span></div>
@@ -182,7 +182,7 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
 <div class="payamt"><span>Amount to pay</span><b id="payAmt"></b></div>
 <img id="payQr" alt="GCash QR code" hidden>
 <div class="paynum"><span class="m">GCash number</span><b id="payNum"></b><span class="m" id="payName"></span><button type="button" class="link" id="payCopy">Copy number</button></div>
-<ol><li>Open GCash, then scan the QR or send to the number above.</li><li>Pay the exact amount shown.</li><li>Send your payment screenshot to us with your name and booking date.</li></ol>
+<ol><li>Open GCash, then scan the QR or send to the number above.</li><li>Pay the exact amount shown.</li><li>Send your payment screenshot to us with your name and booking date.</li><li>Your booking stays pending until we confirm your payment.</li></ol>
 <a class="cta block" id="payMsg" target="_blank" rel="noopener" hidden>Send screenshot on Messenger</a>
 <button type="button" class="link" id="payClose">Close</button>
 </div></div>
@@ -275,7 +275,7 @@ $('aT').onclick=async e=>{const b=e.target.closest('.x');if(!b)return;
 $('aCsv').onclick=()=>{location.href='/api/admin/export.csv'};
 function view(on){adminOn=on;document.querySelectorAll('.pub').forEach(el=>el.hidden=on);$('adminView').hidden=!on;
  $('navAdmin').classList.toggle('on',on);$('navBook').classList.toggle('on',!on);if(on){scrollTo(0,0);loadAdmin()}}
-$('navAdmin').style.display='none';$('navAdmin').onclick=e=>{e.preventDefault();view(true)};$('aBack').onclick=()=>view(false);
+$('aBack').onclick=()=>view(false);
 $('navBook').addEventListener('click',()=>{if(adminOn)view(false)});
 setInterval(()=>{loadSlots();if(adminOn&&isAdmin)loadAdmin()},15000);
 
