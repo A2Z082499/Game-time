@@ -249,7 +249,7 @@ $('form').onsubmit=async e=>{e.preventDefault();
  try{const r=await api('/api/bookings',{method:'POST',body:JSON.stringify({name:$('name').value.trim(),phone:$('phone').value.trim(),date:d,hours:[...picked]})});
   picked=new Set();if(r.booked.length)f.reset();await loadSlots();
   if(!r.booked.length)say('Sorry, those hours were just taken. Please pick other times.','err');
-  else{showPay(r,d);say(`Booked ${r.booked.length} hour${r.booked.length>1?'s':''}! Please complete your GCash payment.`+(r.failed.length?` ${r.failed.length} hour(s) were taken by someone else.`:''),'ok')}}
+  else{showPay(r,d);say(`Booked ${r.booked.length} hour${r.booked.length>1?'s':''}! Please complete your GCash payment or contact the owner to confirm the booking.`+(r.failed.length?` ${r.failed.length} hour(s) were taken by someone else.`:''),'ok')}}
  catch(x){say(x.message==='Error'||x.message==='Failed to fetch'?'Could not reach the server. Please try again.':x.message,'err')}
  btn.disabled=false};
 
