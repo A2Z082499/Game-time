@@ -30,6 +30,7 @@ button:disabled{cursor:not-allowed}:focus-visible{outline:3px solid var(--gold);
 .item.on{background:#ffffff14;box-shadow:inset 3px 0 0 var(--gold)}.item.on i{background:var(--gold);color:var(--navy)}
 .item.dim{opacity:.45;pointer-events:none}
 .payalt{display:flex;gap:10px;margin:12px 0 2px}.payalt button{flex:1;padding:11px 12px;border-radius:12px;border:1.5px solid var(--line);background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}.payalt .bad{border-color:#e0493f;color:#ff8b83}.payalt button:disabled{opacity:.5;cursor:not-allowed}
+.slot small{overflow-wrap:anywhere}
 .courts{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}.courts button{flex:1;min-width:140px;border:1.5px solid var(--line);background:var(--card);color:inherit;border-radius:12px;padding:12px 14px;font:inherit;font-weight:800;cursor:pointer}.courts button[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:inset 0 -3px 0 var(--gold)}
 .admin{margin-top:auto;border-top:1px solid #ffffff1f;padding-top:14px}
 .admin:hover{background:#ffffff0d}
@@ -195,7 +196,7 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
 <script>
 var SUPABASE_URL="https://lgpfgkqjfpkbwbixplee.supabase.co",SUPABASE_KEY="sb_publishable_mTz9KXbimnwuGG4rWwpPuA_hIND2ph9";
 /* Payment settings: edit these */
-var GCASH_NUMBER="0993 802 3008",GCASH_NAME="Mesh'al Q.",GCASH_QR="gcash-qr.jpg",CONTACT_LINK="https://www.facebook.com/profile.php?id=61593185426097";
+var GCASH_NUMBER="09XX XXX XXXX",GCASH_NAME="Paddle King",GCASH_QR="gcash-qr.jpg",CONTACT_LINK="https://www.facebook.com/profile.php?id=61593185426097";
 const $=id=>document.getElementById(id),OPEN=15,CLOSE=28,MAXD=30;
 const ap=h=>(h%24)<12?'AM':'PM',n12=h=>(h%24+11)%12+1;
 const label=h=>ap(h)===ap(h+1)?`${n12(h)}:00-${n12(h+1)}:00 ${ap(h)}`:`${n12(h)}:00 ${ap(h)}-${n12(h+1)}:00 ${ap(h+1)}`;
@@ -205,7 +206,7 @@ const today=`${parts.year}-${parts.month}-${parts.day}`,nowH=+parts.hour;
 const add=(d,n)=>{const t=new Date(d+'T00:00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10)};
 const dt=d=>new Date(d+'T00:00:00Z'),fmt=(d,o)=>dt(d).toLocaleDateString('en',{...o,timeZone:'UTC'});
 const maxDate=add(today,MAXD);
-const takenSet=new Set(),esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const takenSet=new Set(),takenName=new Map(),esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let court='king';const CN={king:'King Court',queen:'Queen Court'};
 const taken=(d,h)=>takenSet.has(court+'|'+d+'|'+h);
 const SB=async(fn,body)=>{const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/'+fn,{method:'POST',headers:Object.assign({'Content-Type':'application/json',apikey:SUPABASE_KEY},SUPABASE_KEY.indexOf('eyJ')===0?{Authorization:'Bearer '+SUPABASE_KEY}:{}),body:JSON.stringify(body)});let j={};try{j=await r.json()}catch{}if(!r.ok)throw Object.assign(new Error(j.message||'Error'),{status:r.status});return j};
@@ -225,7 +226,7 @@ function days(){const el=$('days');el.innerHTML='';for(let i=0;i<7;i++){const d=
 function slots(){const el=$('slots');el.innerHTML='';for(let h=OPEN;h<CLOSE;h++){
  const past=isPast(sel,h),tk=taken(sel,h),on=picked.has(h),b=document.createElement('button');
  b.className='slot'+(on?' sel':'');b.disabled=past||tk;
- b.innerHTML=`<div><b>${label(h)}</b><small>PHP ${price(h)} · 60 MIN</small></div><em>${on?'✓ SELECTED':past?'CLOSED':tk?'BOOKED':'OPEN'}</em>`;
+ b.innerHTML=`<div><b>${label(h)}</b><small>${tk&&takenName.get(court+'|'+sel+'|'+h)?'Booked by '+esc(takenName.get(court+'|'+sel+'|'+h)):'PHP '+price(h)+' · 60 MIN'}</small></div><em>${on?'✓ SELECTED':past?'CLOSED':tk?'BOOKED':'OPEN'}</em>`;
  b.onclick=()=>{picked.has(h)?picked.delete(h):picked.add(h);slots();panel()};el.append(b)}}
 function panel(){const hs=[...picked].sort((a,b)=>a-b);$('courtName').textContent=CN[court];$('count').textContent=hs.length;
  $('empty').hidden=hs.length>0;$('form').hidden=$('clear').hidden=!hs.length;
@@ -262,7 +263,7 @@ $('payClose').onclick=()=>{$('pay').hidden=true};
 $('pay').onclick=e=>{if(e.target===$('pay'))$('pay').hidden=true};
 $('payCopy').onclick=()=>{const b=$('payCopy'),t=GCASH_NUMBER.replace(/\s/g,'');
  try{navigator.clipboard.writeText(t).then(()=>{b.textContent='Copied!'},()=>{b.textContent='Copy failed'})}catch(e){b.textContent='Copy failed'}};
-async function loadSlots(){try{const r=await api('/api/slots?from='+today);takenSet.clear();r.forEach(x=>takenSet.add(x.court+'|'+x.date+'|'+x.hour));
+async function loadSlots(){try{const r=await api('/api/slots?from='+today);takenSet.clear();takenName.clear();r.forEach(x=>{const k=x.court+'|'+x.date+'|'+x.hour;takenSet.add(k);takenName.set(k,x.name||'')});
  picked.forEach(h=>taken(sel,h)&&picked.delete(h));slots();panel()}catch(x){}}
 $('form').onsubmit=async e=>{e.preventDefault();
  const f=e.target,btn=f.querySelector('button[type=submit]'),d=sel,c=court,nm=$('name').value.trim(),ph=$('phone').value.trim();btn.disabled=true;say('Booking...');
@@ -308,3 +309,4 @@ pick(today);loadSlots();
 </script>
 </body>
 </html>
+d
