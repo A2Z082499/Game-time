@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<title>Pickle Time – Admin</title>
+<title>Paddle King Court – Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -71,7 +71,7 @@ input:focus,select:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4px
 </style>
 </head>
 <body>
-<header class="bar"><div class="logo" aria-hidden="true"><img src="logo.png" alt="" onerror="this.remove()"></div><b>Pickle <span>Time</span> admin</b><div class="sp"></div><a href="index.html">View booking page</a><button id="out" hidden>Log out</button></header>
+<header class="bar"><div class="logo" aria-hidden="true"><img src="logo.png" alt="" onerror="this.remove()"></div><b>Paddle <span>King Court</span> admin</b><div class="sp"></div><a href="index.html">View booking page</a><button id="out" hidden>Log out</button></header>
 <main class="wrap">
   <form id="login" class="card">
     <h1>Admin login</h1>
@@ -144,14 +144,14 @@ function render(){
   $('sC').textContent=gs.filter(g=>!g.pending&&!g.past).length;
   $('sD').textContent=peso(pend.reduce((s,g)=>s+g.total,0));
   $('sR').textContent=peso(rows.filter(r=>r.status==='confirmed').reduce((s,r)=>s+r.price,0));
-  document.title=(pend.length?`(${pend.length}) `:'')+'Pickle Time – Admin';
+  document.title=(pend.length?`(${pend.length}) `:'')+'Paddle King Court – Admin';
   $('tabs').innerHTML=TABS.map(([id,n,f])=>`<button class="tab" data-t="${id}" aria-pressed="${tab===id}">${n}${id==='todo'&&pend.length?`<i>${pend.length}</i>`:''}</button>`).join('');
   const f=TABS.find(t=>t[0]===tab)[2];
   const list=gs.filter(f).filter(g=>(!d||g.date===d)&&(!q||(g.name+' '+g.phone).toLowerCase().includes(q)))
     .sort((a,b)=>tab==='past'?b.date.localeCompare(a.date):tab==='todo'?String(a.created).localeCompare(String(b.created)):a.date.localeCompare(b.date)||a.rows[0].hour-b.rows[0].hour);
   $('list').innerHTML=list.length?list.map(g=>{
     const st=g.pending?'pending':'confirmed',ids=g.rows.map(r=>r.id).join(','),n=g.rows.length;
-    const sms=`sms:${encodeURIComponent(g.phone)}?body=${encodeURIComponent(`Hi ${g.name}, your Pickle Time booking at ${CN[g.court]||'the court'} on ${fdate(g.date)} (${g.rows.map(r=>label(r.hour)).join(', ')}) is confirmed. See you on the court!`)}`;
+    const sms=`sms:${encodeURIComponent(g.phone)}?body=${encodeURIComponent(`Hi ${g.name}, your Paddle King Court booking at ${CN[g.court]||'the court'} on ${fdate(g.date)} (${g.rows.map(r=>label(r.hour)).join(', ')}) is confirmed. See you on the court!`)}`;
     return `<article class="bk ${st}"><div>
       <div class="who">${esc(g.name)}<a href="tel:${esc(g.phone)}">${esc(g.phone)}</a></div>
       <div class="when"><b>${esc(CN[g.court]||g.court||"")}</b> · ${fdate(g.date)}</div>
