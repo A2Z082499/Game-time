@@ -99,7 +99,7 @@ input:focus,select:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4px
 var SUPABASE_URL="https://lgpfgkqjfpkbwbixplee.supabase.co",SUPABASE_KEY="sb_publishable_mTz9KXbimnwuGG4rWwpPuA_hIND2ph9";
 const $=id=>document.getElementById(id),SK='pt_admin_session';
 const esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const ap=h=>h<12?'AM':'PM',n12=h=>(h+11)%12+1;
+const ap=h=>(h%24)<12?'AM':'PM',n12=h=>(h%24+11)%12+1;
 const label=h=>ap(h)===ap(h+1)?`${n12(h)}:00-${n12(h+1)}:00 ${ap(h)}`:`${n12(h)}:00 ${ap(h)}-${n12(h+1)}:00 ${ap(h+1)}`;
 const peso=n=>'₱'+n.toLocaleString();
 const P=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Manila',hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit'}).formatToParts(new Date()).reduce((o,p)=>(o[p.type]=p.value,o),{});
