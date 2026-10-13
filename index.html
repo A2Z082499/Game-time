@@ -29,6 +29,7 @@ button:disabled{cursor:not-allowed}:focus-visible{outline:3px solid var(--gold);
 .item small{display:block;color:#8fa3c8;font-size:.7rem}
 .item.on{background:#ffffff14;box-shadow:inset 3px 0 0 var(--gold)}.item.on i{background:var(--gold);color:var(--navy)}
 .item.dim{opacity:.45;pointer-events:none}
+.courts{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}.courts button{flex:1;min-width:140px;border:1.5px solid var(--line);background:var(--card);color:inherit;border-radius:12px;padding:12px 14px;font:inherit;font-weight:800;cursor:pointer}.courts button[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:inset 0 -3px 0 var(--gold)}
 .admin{margin-top:auto;border-top:1px solid #ffffff1f;padding-top:14px}
 .admin:hover{background:#ffffff0d}
 /* main */
@@ -126,14 +127,14 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
 <aside class="side">
   <div class="brand"><div class="logo" aria-hidden="true"><img src="logo.png" alt="" onerror="this.remove()"></div><b>Pickle<span>Time</span></b></div>
   <h4>BOOK A COURT</h4>
-  <a class="item on" id="navBook" href="#avail"><i>01</i><div>Court 1<small>Now booking</small></div></a>
-  <div class="item dim"><i>+</i><div>More courts<small>Coming soon</small></div></div>
+  <a class="item on" id="navBook" data-court="king" href="#avail"><i>K</i><div>King Court<small>Now booking</small></div></a>
+  <a class="item" data-court="queen" href="#avail"><i>Q</i><div>Queen Court<small>Now booking</small></div></a>
   <a class="item admin" id="navAdmin" href="admin.html"><i>A</i><div>Admin<small>Log in to manage bookings</small></div></a>
 </aside>
 <main>
   <div class="top pub"><span class="pill">OPEN DAILY</span><b>Court Hours: 3:00PM to 1:00AM</b><span>₱180/hour 3PM–4PM | ₱230/hour 4PM–1AM</span></div>
   <section class="hero pub"><div class="hero-in">
-    <p class="where"><b>2 OUTDOOR PICKLEBALL COURTS</b> · MC Village, Block 3, Brgy. Fatima, General Santos City &nbsp;|&nbsp; Bookings &amp; inquiries: 0955 547 6570</p>
+    <p class="where"><b>KING COURT &amp; QUEEN COURT</b> · MC Village, Block 3, Brgy. Fatima, General Santos City &nbsp;|&nbsp; Bookings &amp; inquiries: 0955 547 6570</p>
     <h1>It's Your Court. It's Your Time.<em>It's Pickle Time!</em></h1>
     <ul class="tags"><li>Live availability</li><li>Flexible multi-slot booking</li><li>Open 3PM–1AM</li></ul>
     <p class="where" style="margin-top:14px">Early bookings from 6 AM are available with advance notice. Message us at 0955 547 6570.</p>
@@ -142,8 +143,9 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
   </div></section>
   <div class="wrap pub">
     <section class="card" id="avail">
-      <div class="row"><div><div class="eyebrow">SELECT YOUR PLAY TIME</div><h2>Court availability</h2></div>
+      <div class="row"><div><div class="eyebrow">SELECT YOUR PLAY TIME</div><h2 id="availT">King Court availability</h2></div>
         <label class="jump"><span>JUMP TO DATE</span><input type="date" id="jump"></label></div>
+      <div class="courts" id="courts"><button type="button" data-court="king" aria-pressed="true">King Court</button><button type="button" data-court="queen" aria-pressed="false">Queen Court</button></div>
       <div class="nav"><button id="prev" aria-label="Previous week">&larr;</button><div><b id="range"></b><div class="m">Book up to 30 days ahead</div></div><button id="next" aria-label="Next week">&rarr;</button></div>
       <div class="days" id="days"></div>
       <h3 id="long"></h3>
@@ -152,7 +154,7 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
       <div class="slots" id="slots"></div>
     </section>
     <aside class="card book">
-      <div class="row"><div><div class="eyebrow">YOUR BOOKING</div><h2>Play time</h2></div><span class="badge" id="count">0</span></div>
+      <div class="row"><div><div class="eyebrow">YOUR BOOKING</div><h2>Play time</h2><div class="m" id="courtName"></div></div><span class="badge" id="count">0</span></div>
       <div class="empty" id="empty"><div class="court"></div><b>No times selected</b><span class="m">Tap any open hour to build your booking.</span></div>
       <ul id="picked"></ul>
       <button class="link" id="clear" type="button" hidden>Clear selection</button>
@@ -202,11 +204,12 @@ const add=(d,n)=>{const t=new Date(d+'T00:00:00Z');t.setUTCDate(t.getUTCDate()+n
 const dt=d=>new Date(d+'T00:00:00Z'),fmt=(d,o)=>dt(d).toLocaleDateString('en',{...o,timeZone:'UTC'});
 const maxDate=add(today,MAXD);
 const takenSet=new Set(),esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const taken=(d,h)=>takenSet.has(d+'|'+h);
+let court='king';const CN={king:'King Court',queen:'Queen Court'};
+const taken=(d,h)=>takenSet.has(court+'|'+d+'|'+h);
 const SB=async(fn,body)=>{const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/'+fn,{method:'POST',headers:Object.assign({'Content-Type':'application/json',apikey:SUPABASE_KEY},SUPABASE_KEY.indexOf('eyJ')===0?{Authorization:'Bearer '+SUPABASE_KEY}:{}),body:JSON.stringify(body)});let j={};try{j=await r.json()}catch{}if(!r.ok)throw Object.assign(new Error(j.message||'Error'),{status:r.status});return j};
 const api=async(url,o={})=>{
- if(url.startsWith('/api/slots'))return SB('get_slots',{p_from:today});
- if(url==='/api/bookings'){const b=JSON.parse(o.body);return SB('book_hours',{p_name:b.name,p_phone:b.phone,p_date:b.date,p_hours:b.hours})}
+ if(url.startsWith('/api/slots'))return SB('get_slots_v2',{p_from:today});
+ if(url==='/api/bookings'){const b=JSON.parse(o.body);return SB('book_hours_v2',{p_name:b.name,p_phone:b.phone,p_court:b.court,p_date:b.date,p_hours:b.hours})}
  throw Object.assign(new Error('Admin is managed in Supabase'),{status:404})};
 let all=[],adminOn=false,isAdmin=false;
 let sel=today,week=today,picked=new Set();
@@ -222,7 +225,7 @@ function slots(){const el=$('slots');el.innerHTML='';for(let h=OPEN;h<CLOSE;h++)
  b.className='slot'+(on?' sel':'');b.disabled=past||tk;
  b.innerHTML=`<div><b>${label(h)}</b><small>PHP ${price(h)} · 60 MIN</small></div><em>${on?'✓ SELECTED':past?'CLOSED':tk?'BOOKED':'OPEN'}</em>`;
  b.onclick=()=>{picked.has(h)?picked.delete(h):picked.add(h);slots();panel()};el.append(b)}}
-function panel(){const hs=[...picked].sort((a,b)=>a-b);$('count').textContent=hs.length;
+function panel(){const hs=[...picked].sort((a,b)=>a-b);$('courtName').textContent=CN[court];$('count').textContent=hs.length;
  $('empty').hidden=hs.length>0;$('form').hidden=$('clear').hidden=!hs.length;
  $('picked').innerHTML=hs.map(h=>`<li><span>${label(h)}</span><b>${peso(price(h))}</b></li>`).join('');
  $('total').textContent=peso(hs.reduce((s,h)=>s+price(h),0))}
@@ -234,8 +237,8 @@ $('prev').onclick=()=>{week=add(week,-7);if(week<today)week=today;days()};
 $('next').onclick=()=>{week=add(week,7);days()};
 $('clear').onclick=()=>{picked.clear();slots();panel()};
 const say=(t,c)=>{$('msg').className=c||'';$('msg').textContent=t};
-function showPay(r,d){
- $('paySum').textContent=fmt(d,{weekday:'long',month:'long',day:'numeric'})+' · '+r.booked.map(label).join(', ');
+function showPay(r,d,c){
+ $('paySum').textContent=CN[c]+' · '+fmt(d,{weekday:'long',month:'long',day:'numeric'})+' · '+r.booked.map(label).join(', ');
  $('payAmt').textContent=peso(r.total);$('payNum').textContent=GCASH_NUMBER;$('payName').textContent=GCASH_NAME;
  const q=$('payQr');q.onload=()=>{q.hidden=false};q.onerror=()=>{q.hidden=true};q.src=GCASH_QR;
  const m=$('payMsg');m.hidden=!CONTACT_LINK;if(CONTACT_LINK)m.href=CONTACT_LINK;
@@ -244,14 +247,14 @@ $('payClose').onclick=()=>{$('pay').hidden=true};
 $('pay').onclick=e=>{if(e.target===$('pay'))$('pay').hidden=true};
 $('payCopy').onclick=()=>{const b=$('payCopy'),t=GCASH_NUMBER.replace(/\s/g,'');
  try{navigator.clipboard.writeText(t).then(()=>{b.textContent='Copied!'},()=>{b.textContent='Copy failed'})}catch(e){b.textContent='Copy failed'}};
-async function loadSlots(){try{const r=await api('/api/slots?from='+today);takenSet.clear();r.forEach(x=>takenSet.add(x.date+'|'+x.hour));
+async function loadSlots(){try{const r=await api('/api/slots?from='+today);takenSet.clear();r.forEach(x=>takenSet.add(x.court+'|'+x.date+'|'+x.hour));
  picked.forEach(h=>taken(sel,h)&&picked.delete(h));slots();panel()}catch(x){}}
 $('form').onsubmit=async e=>{e.preventDefault();
- const f=e.target,btn=f.querySelector('button[type=submit]'),d=sel;btn.disabled=true;say('Booking...');
- try{const r=await api('/api/bookings',{method:'POST',body:JSON.stringify({name:$('name').value.trim(),phone:$('phone').value.trim(),date:d,hours:[...picked]})});
+ const f=e.target,btn=f.querySelector('button[type=submit]'),d=sel,c=court;btn.disabled=true;say('Booking...');
+ try{const r=await api('/api/bookings',{method:'POST',body:JSON.stringify({name:$('name').value.trim(),phone:$('phone').value.trim(),date:d,hours:[...picked],court:court})});
   picked=new Set();if(r.booked.length)f.reset();await loadSlots();
   if(!r.booked.length)say('Sorry, those hours were just taken. Please pick other times.','err');
-  else{showPay(r,d);say(`Booked ${r.booked.length} hour${r.booked.length>1?'s':''}! Please complete your GCash payment or contact the owner to confirm the booking.`+(r.failed.length?` ${r.failed.length} hour(s) were taken by someone else.`:''),'ok')}}
+  else{showPay(r,d,c);say(`${CN[c]}: booked ${r.booked.length} hour${r.booked.length>1?'s':''}! Please complete your GCash payment or contact the owner to confirm the booking.`+(r.failed.length?` ${r.failed.length} hour(s) were taken by someone else.`:''),'ok')}}
  catch(x){say(x.message==='Error'||x.message==='Failed to fetch'?'Could not reach the server. Please try again.':x.message,'err')}
  btn.disabled=false};
 
@@ -281,6 +284,11 @@ $('aBack').onclick=()=>view(false);
 $('navBook').addEventListener('click',()=>{if(adminOn)view(false)});
 setInterval(()=>{loadSlots();if(adminOn&&isAdmin)loadAdmin()},15000);
 
+function setCourt(c){if(c===court)return;court=c;picked.clear();
+ document.querySelectorAll('#courts button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.court===c));
+ document.querySelectorAll('.side .item[data-court]').forEach(b=>b.classList.toggle('on',b.dataset.court===c));
+ $('availT').textContent=CN[c]+' availability';slots();panel()}
+document.querySelectorAll('[data-court]').forEach(b=>b.addEventListener('click',()=>setCourt(b.dataset.court)));
 pick(today);loadSlots();
 </script>
 </body>
