@@ -19,7 +19,8 @@ button:disabled{cursor:not-allowed;opacity:.5}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 [hidden]{display:none!important}
 .bar{background:linear-gradient(180deg,#0a1a38,#071226);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:14px}
-.logo{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd24d,var(--gold));flex:none}
+.logo{position:relative;width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd24d,var(--gold));flex:none}
+.logo img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover;background:#fff;z-index:1}
 .bar b{font-family:"Barlow Condensed",Inter,sans-serif;font-size:1.5rem;text-transform:uppercase;letter-spacing:.01em;line-height:1}
 .bar b span{color:var(--gold)}
 .bar .sp{flex:1}
@@ -70,7 +71,7 @@ input:focus,select:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4px
 </style>
 </head>
 <body>
-<header class="bar"><div class="logo" aria-hidden="true"></div><b>Pickle <span>Time</span> admin</b><div class="sp"></div><a href="index.html">View booking page</a><button id="out" hidden>Log out</button></header>
+<header class="bar"><div class="logo" aria-hidden="true"><img src="logo.png" alt="" onerror="this.remove()"></div><b>Pickle <span>Time</span> admin</b><div class="sp"></div><a href="index.html">View booking page</a><button id="out" hidden>Log out</button></header>
 <main class="wrap">
   <form id="login" class="card">
     <h1>Admin login</h1>
