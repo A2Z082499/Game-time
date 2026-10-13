@@ -19,6 +19,7 @@ button:disabled{cursor:not-allowed}:focus-visible{outline:3px solid var(--gold);
 .side{position:fixed;inset:0 auto 0 0;width:var(--side);background:linear-gradient(180deg,#0a1a38,#071226);color:#fff;padding:24px 16px;display:flex;flex-direction:column;z-index:5}
 .brand{display:flex;align-items:center;gap:12px;padding:0 6px 28px}
 .logo{width:54px;height:54px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd24d,var(--gold));display:grid;place-items:center;position:relative;box-shadow:0 0 0 3px #ffffff22}
+.logo img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover;background:#fff;z-index:1}
 .logo::before{content:"";position:absolute;width:12px;height:12px;border-radius:50%;background:#0c1f3f;top:11px;left:13px;box-shadow:14px 6px 0 #0c1f3f,4px 18px 0 #0c1f3f}
 .brand b{font-family:"Barlow Condensed",Inter,sans-serif;font-size:1.7rem;line-height:.95;font-weight:800;text-transform:uppercase;letter-spacing:.01em}
 .brand b span{color:var(--gold);display:block}
@@ -123,7 +124,7 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
 </head>
 <body>
 <aside class="side">
-  <div class="brand"><div class="logo" aria-hidden="true"></div><b>Pickle<span>Time</span></b></div>
+  <div class="brand"><div class="logo" aria-hidden="true"><img src="logo.png" alt="" onerror="this.remove()"></div><b>Pickle<span>Time</span></b></div>
   <h4>BOOK A COURT</h4>
   <a class="item on" id="navBook" href="#avail"><i>01</i><div>Court 1<small>Now booking</small></div></a>
   <div class="item dim"><i>+</i><div>More courts<small>Coming soon</small></div></div>
