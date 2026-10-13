@@ -99,6 +99,7 @@ input:focus,select:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4px
 <script>
 var SUPABASE_URL="https://lgpfgkqjfpkbwbixplee.supabase.co",SUPABASE_KEY="sb_publishable_mTz9KXbimnwuGG4rWwpPuA_hIND2ph9";
 const $=id=>document.getElementById(id),SK='pt_admin_session';
+const CN={king:'King Court',queen:'Queen Court'};
 const esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ap=h=>(h%24)<12?'AM':'PM',n12=h=>(h%24+11)%12+1;
 const label=h=>ap(h)===ap(h+1)?`${n12(h)}:00-${n12(h+1)}:00 ${ap(h)}`:`${n12(h)}:00 ${ap(h)}-${n12(h+1)}:00 ${ap(h+1)}`;
@@ -129,8 +130,8 @@ async function rpc(fn,body,retry=true){
 let rows=[],tab='todo',timer;
 function groups(){
   const g=new Map();
-  rows.forEach(r=>{const k=[r.date,r.phone,r.name,String(r.created_at).slice(0,16)].join('|');
-    if(!g.has(k))g.set(k,{key:k,date:r.date,name:r.name,phone:r.phone,created:r.created_at,rows:[]});g.get(k).rows.push(r)});
+  rows.forEach(r=>{const k=[r.court,r.date,r.phone,r.name,String(r.created_at).slice(0,16)].join('|');
+    if(!g.has(k))g.set(k,{key:k,court:r.court,date:r.date,name:r.name,phone:r.phone,created:r.created_at,rows:[]});g.get(k).rows.push(r)});
   return [...g.values()].map(x=>{x.rows.sort((a,b)=>a.hour-b.hour);
     x.pending=x.rows.some(r=>r.status==='pending');x.total=x.rows.reduce((s,r)=>s+r.price,0);
     x.past=hk(x.rows[x.rows.length-1])<nowKey;return x});
@@ -150,10 +151,10 @@ function render(){
     .sort((a,b)=>tab==='past'?b.date.localeCompare(a.date):tab==='todo'?String(a.created).localeCompare(String(b.created)):a.date.localeCompare(b.date)||a.rows[0].hour-b.rows[0].hour);
   $('list').innerHTML=list.length?list.map(g=>{
     const st=g.pending?'pending':'confirmed',ids=g.rows.map(r=>r.id).join(','),n=g.rows.length;
-    const sms=`sms:${encodeURIComponent(g.phone)}?body=${encodeURIComponent(`Hi ${g.name}, your Pickle Time booking on ${fdate(g.date)} (${g.rows.map(r=>label(r.hour)).join(', ')}) is confirmed. See you on the court!`)}`;
+    const sms=`sms:${encodeURIComponent(g.phone)}?body=${encodeURIComponent(`Hi ${g.name}, your Pickle Time booking at ${CN[g.court]||'the court'} on ${fdate(g.date)} (${g.rows.map(r=>label(r.hour)).join(', ')}) is confirmed. See you on the court!`)}`;
     return `<article class="bk ${st}"><div>
       <div class="who">${esc(g.name)}<a href="tel:${esc(g.phone)}">${esc(g.phone)}</a></div>
-      <div class="when">${fdate(g.date)}</div>
+      <div class="when"><b>${esc(CN[g.court]||g.court||"")}</b> · ${fdate(g.date)}</div>
       <div class="hrs">${g.rows.map(r=>`<span>${label(r.hour)}</span>`).join('')}</div>
       <div class="m" style="margin-top:8px">Booked ${new Date(g.created).toLocaleString('en',{timeZone:'Asia/Manila',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div>
     </div><div class="side">
