@@ -64,12 +64,13 @@ input:focus,select:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4px
 .acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .empty{text-align:center;color:var(--muted);padding:36px 0}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 18px;border-radius:99px;font-weight:700;font-size:.88rem;box-shadow:0 10px 30px #0006}
+@media (prefers-color-scheme:dark){.tab[aria-pressed=true]{background:var(--gold);border-color:var(--gold);color:var(--navy)}.tab i{background:var(--navy);color:var(--gold)}}
 @media(max-width:700px){.stats{grid-template-columns:1fr 1fr}.flt{grid-template-columns:1fr}.bk{grid-template-columns:1fr}.side{align-items:flex-start;text-align:left}.acts{justify-content:flex-start}.wrap{padding:16px 12px 60px}.card{padding:18px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<header class="bar"><div class="logo" aria-hidden="true"></div><b>Pickle <span>Time</span> admin</b><div class="sp"></div><a href="/">View booking page</a><button id="out" hidden>Log out</button></header>
+<header class="bar"><div class="logo" aria-hidden="true"></div><b>Pickle <span>Time</span> admin</b><div class="sp"></div><a href="index.html">View booking page</a><button id="out" hidden>Log out</button></header>
 <main class="wrap">
   <form id="login" class="card">
     <h1>Admin login</h1>
