@@ -29,6 +29,7 @@ button:disabled{cursor:not-allowed}:focus-visible{outline:3px solid var(--gold);
 .item small{display:block;color:#8fa3c8;font-size:.7rem}
 .item.on{background:#ffffff14;box-shadow:inset 3px 0 0 var(--gold)}.item.on i{background:var(--gold);color:var(--navy)}
 .item.dim{opacity:.45;pointer-events:none}
+.payalt{display:flex;gap:10px;margin:12px 0 2px}.payalt button{flex:1;padding:11px 12px;border-radius:12px;border:1.5px solid var(--line);background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}.payalt .bad{border-color:#e0493f;color:#ff8b83}.payalt button:disabled{opacity:.5;cursor:not-allowed}
 .courts{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}.courts button{flex:1;min-width:140px;border:1.5px solid var(--line);background:var(--card);color:inherit;border-radius:12px;padding:12px 14px;font:inherit;font-weight:800;cursor:pointer}.courts button[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:inset 0 -3px 0 var(--gold)}
 .admin{margin-top:auto;border-top:1px solid #ffffff1f;padding-top:14px}
 .admin:hover{background:#ffffff0d}
@@ -132,7 +133,7 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
   <a class="item admin" id="navAdmin" href="admin.html"><i>A</i><div>Admin<small>Log in to manage bookings</small></div></a>
 </aside>
 <main>
-  <div class="top pub"><span class="pill">OPEN DAILY</span><b>Court Hours: 3:00PM to 4:00AM</b><span></span></div>
+  <div class="top pub"><span class="pill">OPEN DAILY</span><b>Court Hours: 3:00PM to 4:00AM</b><span>₱180/hour 3PM–4PM | ₱230/hour 4PM–4AM</span></div>
   <section class="hero pub"><div class="hero-in">
     <p class="where"><b>KING COURT &amp; QUEEN COURT</b> · MC Village, Block 3, Brgy. Fatima, General Santos City &nbsp;|&nbsp; Bookings &amp; inquiries: 0955 547 6570</p>
     <h1>It's Your Court. It's Your Time.<em>Welcome to Paddle King Court!</em></h1>
@@ -186,8 +187,9 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
 <div class="payamt"><span>Amount to pay</span><b id="payAmt"></b></div>
 <img id="payQr" alt="GCash QR code" hidden>
 <div class="paynum"><span class="m">GCash number</span><b id="payNum"></b><span class="m" id="payName"></span><button type="button" class="link" id="payCopy">Copy number</button></div>
-<ol><li>Open GCash, then scan the QR or send to the number above.</li><li>Pay the exact amount shown.</li><li>Send your payment screenshot to us with your name and booking date.</li><li>Your booking stays pending until we confirm your payment.</li></ol>
+<ol><li>Open GCash, then scan the QR or send to the number above.</li><li>Pay the exact amount shown.</li><li>Send your payment screenshot to us with your name and booking date.</li><li>Your time is reserved only after we confirm your payment. Until then, other players can still request the same time.</li></ol>
 <a class="cta block" id="payMsg" target="_blank" rel="noopener" hidden>Send screenshot on Messenger</a>
+<div class="payalt"><button type="button" id="payChange">Change time</button><button type="button" class="bad" id="payCancel">Cancel booking</button></div>
 <button type="button" class="link" id="payClose">Close</button>
 </div></div>
 <script>
@@ -243,6 +245,19 @@ function showPay(r,d,c){
  const q=$('payQr');q.onload=()=>{q.hidden=false};q.onerror=()=>{q.hidden=true};q.src=GCASH_QR;
  const m=$('payMsg');m.hidden=!CONTACT_LINK;if(CONTACT_LINK)m.href=CONTACT_LINK;
  $('payCopy').textContent='Copy number';$('pay').hidden=false}
+let lastB=null;
+async function releaseBooking(change){
+ if(!lastB)return;
+ if(!confirm(change?'Release this booking so you can pick a new time?':'Cancel this booking?'))return;
+ const bs=[$('payChange'),$('payCancel')];bs.forEach(b=>b.disabled=true);
+ try{const n=await SB('cancel_booking_v2',{p_token:lastB.token}),b=lastB;lastB=null;$('pay').hidden=true;
+  if(n>0){await loadSlots();
+   if(change){setCourt(b.court);pick(b.date);$('name').value=b.name;$('phone').value=b.phone;say('Booking released. Pick your new time below.','ok');$('avail').scrollIntoView({behavior:'smooth'})}
+   else say('Your booking was cancelled.','ok')}
+  else say('This booking is already confirmed, so it cannot be changed here. Please message us.','err')}
+ catch(x){say('Could not update your booking. Please try again or message us.','err')}
+ bs.forEach(b=>b.disabled=false)}
+$('payChange').onclick=()=>releaseBooking(true);$('payCancel').onclick=()=>releaseBooking(false);
 $('payClose').onclick=()=>{$('pay').hidden=true};
 $('pay').onclick=e=>{if(e.target===$('pay'))$('pay').hidden=true};
 $('payCopy').onclick=()=>{const b=$('payCopy'),t=GCASH_NUMBER.replace(/\s/g,'');
@@ -250,11 +265,11 @@ $('payCopy').onclick=()=>{const b=$('payCopy'),t=GCASH_NUMBER.replace(/\s/g,'');
 async function loadSlots(){try{const r=await api('/api/slots?from='+today);takenSet.clear();r.forEach(x=>takenSet.add(x.court+'|'+x.date+'|'+x.hour));
  picked.forEach(h=>taken(sel,h)&&picked.delete(h));slots();panel()}catch(x){}}
 $('form').onsubmit=async e=>{e.preventDefault();
- const f=e.target,btn=f.querySelector('button[type=submit]'),d=sel,c=court;btn.disabled=true;say('Booking...');
- try{const r=await api('/api/bookings',{method:'POST',body:JSON.stringify({name:$('name').value.trim(),phone:$('phone').value.trim(),date:d,hours:[...picked],court:court})});
+ const f=e.target,btn=f.querySelector('button[type=submit]'),d=sel,c=court,nm=$('name').value.trim(),ph=$('phone').value.trim();btn.disabled=true;say('Booking...');
+ try{const r=await api('/api/bookings',{method:'POST',body:JSON.stringify({name:nm,phone:ph,date:d,hours:[...picked],court:court})});
   picked=new Set();if(r.booked.length)f.reset();await loadSlots();
   if(!r.booked.length)say('Sorry, those hours were just taken. Please pick other times.','err');
-  else{showPay(r,d,c);say(`${CN[c]}: booked ${r.booked.length} hour${r.booked.length>1?'s':''}! Please complete your GCash payment or contact the owner to confirm the booking.`+(r.failed.length?` ${r.failed.length} hour(s) were taken by someone else.`:''),'ok')}}
+  else{lastB={token:r.token,court:c,date:d,name:nm,phone:ph};showPay(r,d,c);say(`${CN[c]}: booked ${r.booked.length} hour${r.booked.length>1?'s':''}! Please complete your GCash payment or contact the owner to confirm the booking.`+(r.failed.length?` ${r.failed.length} hour(s) were taken by someone else.`:''),'ok')}}
  catch(x){say(x.message==='Error'||x.message==='Failed to fetch'?'Could not reach the server. Please try again.':x.message,'err')}
  btn.disabled=false};
 
