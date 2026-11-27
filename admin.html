@@ -82,6 +82,14 @@ input:focus,select:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4px
 .bulkbar b{font-size:.85rem}
 .chk{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;color:var(--muted);cursor:pointer}
 .chk input{width:16px;height:16px;margin:0}
+/* rates reference */
+.ref{margin:14px 0 0;background:var(--off);border-radius:12px;padding:12px 16px}
+.ref summary{cursor:pointer;font-weight:800;font-size:.9rem}
+.refg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.refg div{background:var(--card);border-radius:10px;padding:10px 12px;font-size:.82rem;line-height:1.6}
+.refg h3{margin:0 0 4px;font-size:.62rem;letter-spacing:.12em;color:var(--muted)}
+.refg b{font-weight:800}
+@media(max-width:900px){.refg{grid-template-columns:1fr}}
 @media(max-width:700px){.stats{grid-template-columns:1fr 1fr}.flt{grid-template-columns:1fr}.bk{grid-template-columns:1fr}.side{align-items:flex-start;text-align:left}.acts{justify-content:flex-start}.wrap{padding:16px 12px 60px}.card{padding:18px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -100,6 +108,14 @@ input:focus,select:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4px
   <section id="app" class="card" hidden>
     <h1>Bookings</h1>
     <p class="m">Check the GCash payment, then confirm the booking. Delete bookings that were never paid to free the hours for other players.</p>
+    <details class="ref" open>
+      <summary>Rates &amp; equipment rental</summary>
+      <div class="refg">
+        <div><h3>COURT RENTAL (PER HOUR)</h3>5:00 AM – 3:00 PM: <b>₱100</b><br>3:00 PM – 8:00 PM: <b>₱150</b><br>8:00 PM – 12:00 AM: <b>₱200</b></div>
+        <div><h3>EQUIPMENT RENTAL (AT THE COURT)</h3>Paddle rental: <b>₱35</b> per use<br>Ball rental: <b>₱15</b> per hour<br><span class="m">Not included in booking totals.</span></div>
+        <div><h3>BOOKING HOURS</h3>Open daily <b>5:00 AM – 12:00 AM</b><br>New net heat protection installed<br><span class="m">Bookings &amp; inquiries: 0905 479 2817</span></div>
+      </div>
+    </details>
     <div class="stats">
       <div class="hot"><b id="sP">0</b><span>Waiting for confirmation</span></div>
       <div><b id="sC">0</b><span>Confirmed upcoming</span></div>
@@ -197,7 +213,7 @@ function render(){
   list.forEach(g=>{idsByKey[g.key]=g.rows.map(r=>r.id);blockedByKey[g.key]=g.blocked});
   const card=g=>{
     const st=g.pending?'pending':'confirmed',ids=g.rows.map(r=>r.id).join(','),n=g.rows.length;
-    const sms=`sms:${encodeURIComponent(g.phone)}?body=${encodeURIComponent(`Hi ${g.name}, your Dink Yard Pickleball booking at ${CN[g.court]||'the court'} on ${fdate(g.date)} (${g.rows.map(r=>label(r.hour)).join(', ')}) is confirmed. See you on the court!`)}`;
+    const sms=`sms:${encodeURIComponent(g.phone)}?body=${encodeURIComponent(`Hi ${g.name}, your Dink Yard Pickleball booking at ${CN[g.court]||'the court'} on ${fdate(g.date)} (${g.rows.map(r=>label(r.hour)).join(', ')}) is confirmed. Paddle rental (₱35/use) and ball rental (₱15/hr) are available at the court. See you on the court!`)}`;
     return `<article class="bk ${st}"><div>
       <label class="chk"><input type="checkbox" class="gchk" data-key="${esc(g.key)}"${selected.has(g.key)?' checked':''}> select</label>
       <div class="who" style="margin-top:4px">${esc(g.name)}<a href="tel:${esc(g.phone)}">${esc(g.phone)}</a></div>
