@@ -154,7 +154,7 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
   <a class="item admin" id="navAdmin" href="admin.html"><i>A</i><div>Admin<small>Log in to manage bookings</small></div></a>
 </aside>
 <main>
-  <div class="top pub"><span class="pill">NEW RATES</span><b>Court Hours: 5:00AM to 12:00AM</b><span>₱100/hr 5AM–3PM | ₱150/hr 3PM–8PM | ₱200/hr 8PM–12AM</span><span>Paddle rental ₱35/use | Ball rental ₱15/hr</span></div>
+  <div class="top pub"><span class="pill">NEW RATES</span><b>Court Hours: 5:00AM to 12:00AM</b><span>₱150/hr 5AM–8AM | ₱100/hr 8AM–3PM | ₱150/hr 3PM–6PM | ₱200/hr 6PM–12AM</span><span>Paddle rental ₱35/use | Ball rental ₱15/hr</span></div>
   <section class="hero pub"><div class="hero-in">
     <p class="where"><b>COURT 1&amp;COURT 2</b> Blk 17 lot 20 Employees Village, Fatima, General Santos City, Philippines &nbsp;|&nbsp; Bookings &amp; inquiries: 0905 479 2817</p>
     <h1>It's Your Court. It's Your Time.<em>Welcome to Dink Yard Pickleball Club!</em></h1>
@@ -194,9 +194,10 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
     <div class="card">
       <div class="eyebrow">COURT RENTAL RATES</div><h2>Per hour</h2>
       <ul class="rt">
-        <li><span>5:00 AM – 3:00 PM</span><b>₱100</b></li>
-        <li><span>3:00 PM – 8:00 PM</span><b>₱150</b></li>
-        <li><span>8:00 PM – 12:00 AM</span><b>₱200</b></li>
+        <li><span>5:00 AM – 8:00 AM</span><b>₱150</b></li>
+        <li><span>8:00 AM – 3:00 PM</span><b>₱100</b></li>
+        <li><span>3:00 PM – 6:00 PM</span><b>₱150</b></li>
+        <li><span>6:00 PM – 12:00 AM</span><b>₱200</b></li>
       </ul>
       <p class="eqnote">Open daily, 5:00 AM to 12:00 AM. Each booking is 60 minutes.</p>
     </div>
@@ -244,7 +245,7 @@ var GCASH_NUMBER="09054792817",GCASH_NAME="AI*A A.",GCASH_QR="gcashqr.png",CONTA
 const $=id=>document.getElementById(id),OPEN=5,CLOSE=24;
 const ap=h=>(h%24)<12?'AM':'PM',n12=h=>(h%24+11)%12+1;
 const label=h=>ap(h)===ap(h+1)?`${n12(h)}:00-${n12(h+1)}:00 ${ap(h)}`:`${n12(h)}:00 ${ap(h)}-${n12(h+1)}:00 ${ap(h+1)}`;
-const price=h=>h>=20?200:h>=15?150:100,peso=n=>'₱'+n.toLocaleString();
+const price=h=>h>=18?200:h>=15?150:h>=8?100:150,peso=n=>'₱'+n.toLocaleString();
 const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Manila',hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit'}).formatToParts(new Date()).reduce((o,p)=>(o[p.type]=p.value,o),{});
 const today=`${parts.year}-${parts.month}-${parts.day}`,nowH=+parts.hour;
 const add=(d,n)=>{const t=new Date(d+'T00:00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10)};
