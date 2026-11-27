@@ -128,7 +128,7 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
 </head>
 <body>
 <aside class="side">
-  <div class="brand"><div class="logo" aria-hidden="true"><img src="logo.jpg" alt="" onerror="this.remove()"></div><b>Dink Yard Pickleball<span>Court 1</span></b></div>
+  <div class="brand"><div class="logo" aria-hidden="true"><img src="logo.jpg" alt="" onerror="this.remove()"></div><b>Dink Yard<span>Pickleball</span></b></div>
   <h4>BOOK A COURT</h4>
   <a class="item on" id="navBook" data-court="king" href="#avail"><i>K</i><div>Court 1<small>Now booking</small></div></a>
   <a class="item" data-court="queen" href="#avail"><i>Q</i><div>Court 2<small>Now booking</small></div></a>
@@ -146,10 +146,10 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
   </div></section>
   <div class="wrap pub">
     <section class="card" id="avail">
-      <div class="row"><div><div class="eyebrow">SELECT YOUR PLAY TIME</div><h2 id="availT">King Court availability</h2></div>
+      <div class="row"><div><div class="eyebrow">SELECT YOUR PLAY TIME</div><h2 id="availT">Court 1 availability</h2></div>
         <label class="jump"><span>JUMP TO DATE</span><input type="date" id="jump"></label></div>
-      <div class="courts" id="courts"><button type="button" data-court="king" aria-pressed="true">King Court</button><button type="button" data-court="queen" aria-pressed="false">Queen Court</button></div>
-      <div class="nav"><button id="prev" aria-label="Previous week">&larr;</button><div><b id="range"></b><div class="m">Book up to 30 days ahead</div></div><button id="next" aria-label="Next week">&rarr;</button></div>
+      <div class="courts" id="courts"><button type="button" data-court="king" aria-pressed="true">Court 1</button><button type="button" data-court="queen" aria-pressed="false">Court 2</button></div>
+      <div class="nav"><button id="prev" aria-label="Previous week">&larr;</button><div><b id="range"></b><div class="m">Book anytime through 2050</div></div><button id="next" aria-label="Next week">&rarr;</button></div>
       <div class="days" id="days"></div>
       <h3 id="long"></h3>
       <div class="row"><span class="m">Asia/Manila timezone</span>
@@ -181,7 +181,7 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
       <div class="tw"><table><thead><tr><th>DATE</th><th>TIME</th><th>NAME</th><th>PHONE</th><th>PRICE</th><th>BOOKED ON</th><th></th></tr></thead><tbody id="aT"></tbody></table></div>
       <p class="empty" id="aEmpty" hidden>No bookings match.</p>
     </div></div></section>
-  <footer>Your local spot for pickleball, good games &amp; great company!<br>MC Village, Block 3, Brgy. Fatima, General Santos City 9500 · 0955 547 6570 · datusaad0121@gmail.com<br>© Paddle King Court · Bookings are saved live</footer>
+  <footer>Your local spot for pickleball, good games &amp; great company!<br>MC Village, Block 3, Brgy. Fatima, General Santos City 9500 · 0955 547 6570 · datusaad0121@gmail.com<br>© Dink Yard Pickleball · Bookings are saved live</footer>
 </main>
 <div class="payback" id="pay" hidden><div class="paybox" role="dialog" aria-modal="true" aria-labelledby="payT">
 <div class="eyebrow">BOOKING RECEIVED</div><h2 id="payT">Pay with GCash</h2>
@@ -198,7 +198,7 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
 var SUPABASE_URL="https://lgpfgkqjfpkbwbixplee.supabase.co",SUPABASE_KEY="sb_publishable_mTz9KXbimnwuGG4rWwpPuA_hIND2ph9";
 
 var GCASH_NUMBER="0993 802 3008",GCASH_NAME="Mesh'al Q.",GCASH_QR="gcash-qr.jpg",CONTACT_LINK="https://www.facebook.com/profile.php?id=61593185426097";
-const $=id=>document.getElementById(id),OPEN=15,CLOSE=28,MAXD=30;
+const $=id=>document.getElementById(id),OPEN=15,CLOSE=28;
 const ap=h=>(h%24)<12?'AM':'PM',n12=h=>(h%24+11)%12+1;
 const label=h=>ap(h)===ap(h+1)?`${n12(h)}:00-${n12(h+1)}:00 ${ap(h)}`:`${n12(h)}:00 ${ap(h)}-${n12(h+1)}:00 ${ap(h+1)}`;
 const price=h=>h>=16?230:180,peso=n=>'₱'+n.toLocaleString();
@@ -206,9 +206,9 @@ const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Manila',hourCycle:'h
 const today=`${parts.year}-${parts.month}-${parts.day}`,nowH=+parts.hour;
 const add=(d,n)=>{const t=new Date(d+'T00:00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10)};
 const dt=d=>new Date(d+'T00:00:00Z'),fmt=(d,o)=>dt(d).toLocaleDateString('en',{...o,timeZone:'UTC'});
-const maxDate=add(today,MAXD);
+const maxDate='2050-12-31';
 const takenSet=new Set(),takenName=new Map(),esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let court='king';const CN={king:'King Court',queen:'Queen Court'};
+let court='king';const CN={king:'Court 1',queen:'Court 2'};
 const taken=(d,h)=>takenSet.has(court+'|'+d+'|'+h);
 const SB=async(fn,body)=>{const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/'+fn,{method:'POST',headers:Object.assign({'Content-Type':'application/json',apikey:SUPABASE_KEY},SUPABASE_KEY.indexOf('eyJ')===0?{Authorization:'Bearer '+SUPABASE_KEY}:{}),body:JSON.stringify(body)});let j={};try{j=await r.json()}catch{}if(!r.ok)throw Object.assign(new Error(j.message||'Error'),{status:r.status});return j};
 const api=async(url,o={})=>{
