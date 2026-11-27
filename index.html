@@ -124,6 +124,10 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
 .paynum{display:grid;gap:2px;text-align:center}
 .paynum b{font-size:1.4rem;letter-spacing:.04em}
 .paybox ol{margin:0;padding-left:20px;font-size:.85rem;color:var(--muted);display:grid;gap:4px}
+.fab-msg{position:fixed;right:22px;bottom:calc(22px + env(safe-area-inset-bottom,0px));width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#00c6ff,#0068ff 55%,#7b2ff7);display:grid;place-items:center;box-shadow:0 10px 26px #0006,0 2px 6px #0004;z-index:40;text-decoration:none}
+.fab-msg:hover{transform:scale(1.08)}.fab-msg:active{transform:scale(.97)}
+.fab-msg svg{width:30px;height:30px;fill:#fff}
+@media(max-width:480px){.fab-msg{width:52px;height:52px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px))}.fab-msg svg{width:26px;height:26px}}
 </style>
 </head>
 <body>
@@ -183,13 +187,16 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
     </div></div></section>
   <footer>Your local spot for pickleball, good games &amp; great company!<br>MC Village, Block 3, Brgy. Fatima, General Santos City 9500 · 0955 547 6570 · datusaad0121@gmail.com<br>© Dink Yard Pickleball · Bookings are saved live</footer>
 </main>
+<a id="fbMsg" class="fab-msg pub" target="_blank" rel="noopener" aria-label="Message us on Facebook Messenger" title="Message us on Facebook">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 2C6.477 2 2 6.145 2 11.25c0 2.9 1.45 5.49 3.72 7.19V22l3.4-1.87c.91.25 1.87.39 2.88.39 5.523 0 10-4.145 10-9.27C22 6.145 17.523 2 12 2zm1.02 12.49-2.55-2.72-4.98 2.72 5.48-5.8 2.61 2.72 4.93-2.72-5.49 5.8z"/></svg>
+</a>
 <div class="payback" id="pay" hidden><div class="paybox" role="dialog" aria-modal="true" aria-labelledby="payT">
 <div class="eyebrow">BOOKING RECEIVED</div><h2 id="payT">Pay with GCash</h2>
 <p class="m" id="paySum"></p>
 <div class="payamt"><span>Amount to pay</span><b id="payAmt"></b></div>
 <img id="payQr" alt="GCash QR code" hidden>
 <div class="paynum"><span class="m">GCash number</span><b id="payNum"></b><span class="m" id="payName"></span><button type="button" class="link" id="payCopy">Copy number</button></div>
-<ol><li>Open GCash, then scan the QR or send to the number above.</li><li>Pay the exact amount shown.</li><li>Send us a screenshot of your payment with your name and booking date.</li><li>Your time is reserved only after we confirm your payment. Until then, other players can still request the same time.</li></ol>
+<ol><li>Open GCash, then scan the QR or send to the number above.</li><li>Pay the exact amount shown.</li><li>Send your payment screenshot to us with your name and booking date.</li><li>Your time is reserved only after we confirm your payment. Until then, other players can still request the same time.</li></ol>
 <a class="cta block" id="payMsg" target="_blank" rel="noopener" hidden>Send screenshot on Messenger</a>
 <div class="payalt"><button type="button" id="payChange">Change time</button><button type="button" class="bad" id="payCancel">Cancel booking</button></div>
 <button type="button" class="link" id="payClose">Close</button>
@@ -306,6 +313,7 @@ function setCourt(c){if(c===court)return;court=c;picked.clear();
  document.querySelectorAll('.side .item[data-court]').forEach(b=>b.classList.toggle('on',b.dataset.court===c));
  $('availT').textContent=CN[c]+' availability';slots();panel()}
 document.querySelectorAll('[data-court]').forEach(b=>b.addEventListener('click',()=>setCourt(b.dataset.court)));
+const fb=$('fbMsg');if(CONTACT_LINK){fb.href=CONTACT_LINK}else{fb.hidden=true}
 pick(today);loadSlots();
 </script>
 </body>
