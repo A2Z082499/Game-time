@@ -72,6 +72,16 @@ input:focus,select:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4px
 .empty{text-align:center;color:var(--muted);padding:36px 0}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 18px;border-radius:99px;font-weight:700;font-size:.88rem;box-shadow:0 10px 30px #0006}
 @media (prefers-color-scheme:dark){.tab[aria-pressed=true]{background:var(--gold);border-color:var(--gold);color:var(--navy)}.tab i{background:var(--navy);color:var(--gold)}}
+.chartTitle{display:flex;justify-content:space-between;align-items:baseline;font-size:.72rem;font-weight:800;letter-spacing:.08em;color:var(--muted);margin:20px 0 10px}
+.chartTitle b{font-size:.9rem;letter-spacing:0;color:var(--ink)}
+.chartBars{display:flex;align-items:flex-end;gap:5px;height:110px;border-bottom:1.5px solid var(--line);padding-bottom:4px;margin-bottom:22px}
+.cbar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0;cursor:default}
+.cbar .fill{width:100%;max-width:28px;background:linear-gradient(180deg,var(--gold),var(--gold-d));border-radius:4px 4px 0 0;min-height:2px}
+.cbar span{font-size:.58rem;color:var(--muted);margin-top:4px;white-space:nowrap}
+.bulkbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--off);border-radius:12px;padding:10px 14px;margin-bottom:14px}
+.bulkbar b{font-size:.85rem}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;color:var(--muted);cursor:pointer}
+.chk input{width:16px;height:16px;margin:0}
 @media(max-width:700px){.stats{grid-template-columns:1fr 1fr}.flt{grid-template-columns:1fr}.bk{grid-template-columns:1fr}.side{align-items:flex-start;text-align:left}.acts{justify-content:flex-start}.wrap{padding:16px 12px 60px}.card{padding:18px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -96,8 +106,16 @@ input:focus,select:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4px
       <div><b id="sD">₱0</b><span>Still to collect</span></div>
       <div><b id="sR">₱0</b><span>Confirmed revenue</span></div>
     </div>
+    <div id="chart"></div>
     <div class="tabs" id="tabs"></div>
     <div class="flt"><input id="q" placeholder="Search name or phone" aria-label="Search"><input id="d" type="date" aria-label="Filter by date"></div>
+    <div class="bulkbar" id="bulkbar" hidden>
+      <b id="bulkCount">0 selected</b>
+      <button class="btn" id="bulkConfirm" type="button">Confirm selected</button>
+      <button class="ghost bad" id="bulkCancel" type="button">Delete selected</button>
+      <button class="link" id="bulkClear" type="button">Clear</button>
+    </div>
+    <p class="m" style="margin:-6px 0 10px"><button class="link" id="bulkSelAll" type="button">Select all shown</button></p>
     <div class="list" id="list" aria-live="polite"></div>
   </section>
 </main>
@@ -114,6 +132,7 @@ const P=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Manila',hourCycle:'h23',
 const today=`${P.year}-${P.month}-${P.day}`,nowKey=today+String(+P.hour).padStart(2,'0');
 const fdate=d=>new Date(d+'T00:00:00Z').toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:'UTC'});
 const hk=r=>r.date+String(r.hour).padStart(2,'0');
+const addDays=(d,n)=>{const t=new Date(d+'T00:00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10)};
 
 let sess=null;try{sess=JSON.parse(localStorage.getItem(SK))}catch{}
 const save=s=>{sess=s;try{s?localStorage.setItem(SK,JSON.stringify(s)):localStorage.removeItem(SK)}catch{}};
@@ -134,6 +153,15 @@ async function rpc(fn,body,retry=true){
 }
 
 let rows=[],tab='todo',timer;
+let selected=new Set(),idsByKey={},blockedByKey={},lastList=[];
+function chart(){
+  const days=[];for(let i=13;i>=0;i--)days.push(addDays(today,-i));
+  const byDate={};rows.forEach(r=>{if(r.status==='confirmed')byDate[r.date]=(byDate[r.date]||0)+r.price});
+  const vals=days.map(d=>byDate[d]||0),max=Math.max(1,...vals),tot=vals.reduce((s,v)=>s+v,0);
+  $('chart').innerHTML=`<div class="chartTitle"><span>REVENUE, LAST 14 DAYS</span><b>${peso(tot)}</b></div>
+    <div class="chartBars">${days.map((d,i)=>{const v=vals[i],h=Math.round((v/max)*100);
+      return `<div class="cbar" title="${fdate(d)}: ${peso(v)}"><div class="fill" style="height:${h}%"></div><span>${new Date(d+'T00:00:00Z').getUTCDate()}</span></div>`}).join('')}</div>`;
+}
 const tm=c=>new Date(c).toLocaleTimeString('en',{timeZone:'Asia/Manila',hour:'numeric',minute:'2-digit',second:'2-digit'});
 const chip=r=>{const p=r.status==='pending',cls=p?(r.taken?'x':r.nPend>1?'c':''):'',t=p?(r.taken?' · taken':r.nPend>1?` · #${r.rank} of ${r.nPend}`:''):'';return `<span class="${cls}">${label(r.hour)}${t}</span>`};
 const notes=g=>{if(!g.pending)return '';const out=[];g.rows.forEach(r=>{if(r.status!=='pending')return;
@@ -160,28 +188,34 @@ function render(){
   $('sD').textContent=peso(pend.reduce((s,g)=>s+g.total,0));
   $('sR').textContent=peso(rows.filter(r=>r.status==='confirmed').reduce((s,r)=>s+r.price,0));
   document.title=(pend.length?`(${pend.length}) `:'')+'Dink Yard Pickleball – Admin';
+  chart();
   $('tabs').innerHTML=TABS.map(([id,n,f])=>`<button class="tab" data-t="${id}" aria-pressed="${tab===id}">${n}${id==='todo'&&pend.length?`<i>${pend.length}</i>`:''}</button>`).join('');
   const f=TABS.find(t=>t[0]===tab)[2];
   const list=gs.filter(f).filter(g=>(!d||g.date===d)&&(!q||(g.name+' '+g.phone).toLowerCase().includes(q)))
     .sort((a,b)=>tab==='past'?b.date.localeCompare(a.date):tab==='todo'?String(a.created).localeCompare(String(b.created)):a.date.localeCompare(b.date)||a.rows[0].hour-b.rows[0].hour);
+  lastList=list;idsByKey={};blockedByKey={};
+  list.forEach(g=>{idsByKey[g.key]=g.rows.map(r=>r.id);blockedByKey[g.key]=g.blocked});
   const card=g=>{
     const st=g.pending?'pending':'confirmed',ids=g.rows.map(r=>r.id).join(','),n=g.rows.length;
     const sms=`sms:${encodeURIComponent(g.phone)}?body=${encodeURIComponent(`Hi ${g.name}, your Dink Yard Pickleball booking at ${CN[g.court]||'the court'} on ${fdate(g.date)} (${g.rows.map(r=>label(r.hour)).join(', ')}) is confirmed. See you on the court!`)}`;
     return `<article class="bk ${st}"><div>
-      <div class="who">${esc(g.name)}<a href="tel:${esc(g.phone)}">${esc(g.phone)}</a></div>
+      <label class="chk"><input type="checkbox" class="gchk" data-key="${esc(g.key)}"${selected.has(g.key)?' checked':''}> select</label>
+      <div class="who" style="margin-top:4px">${esc(g.name)}<a href="tel:${esc(g.phone)}">${esc(g.phone)}</a></div>
       <div class="when">${fdate(g.date)}</div>
       <div class="hrs">${g.rows.map(chip).join('')}</div>${notes(g)}
       <div class="m" style="margin-top:8px">Booked ${new Date(g.created).toLocaleString('en',{timeZone:'Asia/Manila',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'})}</div>
     </div><div class="side">
       <span class="st ${st}">${g.pending?'Waiting for payment check':'Confirmed'}</span>
       <div class="tot">${peso(g.total)}<span class="m"> · ${n} hr${n>1?'s':''}</span></div>
-      <div class="acts" data-ids="${ids}">
+      <div class="acts" data-ids="${ids}" data-sms="${esc(sms)}">
         ${g.pending?`<button class="btn" data-a="confirm"${g.blocked?' disabled title="Another client is already confirmed for this time"':''}>Confirm booking</button>`:`<a class="ghost" href="${sms}">Text customer</a><button class="ghost" data-a="pending">Mark pending</button>`}
         <button class="ghost bad" data-a="cancel">Delete</button>
       </div></div></article>`};
   const col=(c,items)=>`<section class="col"><h2 class="colh">${CN[c]}<span>${items.length}</span></h2>${items.length?items.map(card).join(''):`<p class="empty">${tab==='todo'?'Nothing waiting.':'No bookings.'}</p>`}</section>`;
   $('list').innerHTML=['king','queen'].map(c=>col(c,list.filter(g=>g.court===c))).join('');
+  bulkUI();
 }
+function bulkUI(){const n=selected.size;$('bulkbar').hidden=n===0;$('bulkCount').textContent=n+' selected'}
 function toast(t){const e=$('toast');e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,2600)}
 async function load(){
   try{rows=await rpc('admin_list_bookings');show(true);render()}
@@ -191,15 +225,37 @@ function show(on){$('login').hidden=on;$('app').hidden=!on;$('out').hidden=!on;c
 $('login').onsubmit=async e=>{e.preventDefault();$('err').textContent='';const b=e.target.querySelector('button');b.disabled=true;
   try{await auth('password',{email:(v=>v.includes('@')?v:v+'@admin.com')($('em').value.trim().toLowerCase()),password:$('pw').value});$('pw').value='';await load()}catch(x){$('err').textContent=x.message}b.disabled=false};
 $('out').onclick=()=>{save(null);rows=[];show(false)};
-$('tabs').onclick=e=>{const b=e.target.closest('.tab');if(b){tab=b.dataset.t;render()}};
+$('tabs').onclick=e=>{const b=e.target.closest('.tab');if(b){tab=b.dataset.t;selected.clear();render()}};
 $('q').oninput=$('d').oninput=render;
 $('list').onclick=async e=>{
-  const b=e.target.closest('button[data-a]');if(!b)return;const a=b.dataset.a,ids=b.closest('.acts').dataset.ids.split(',');
+  const b=e.target.closest('button[data-a]');if(!b)return;const a=b.dataset.a,acts=b.closest('.acts'),ids=acts.dataset.ids.split(',');
   if(a==='cancel'&&!b.classList.contains('arm')){b.classList.add('arm');b.textContent='Sure? Delete';setTimeout(()=>{b.classList.remove('arm');b.textContent='Delete'},3000);return}
   b.disabled=true;
   try{if(a==='cancel')await rpc('admin_cancel',{p_ids:ids});else await rpc('admin_set_status',{p_ids:ids,p_status:a==='confirm'?'confirmed':'pending'});
-    toast(a==='confirm'?'Booking confirmed':a==='cancel'?'Booking deleted':'Marked pending');await load()}
+    toast(a==='confirm'?'Booking confirmed':a==='cancel'?'Booking deleted':'Marked pending');
+    if(a==='confirm'&&acts.dataset.sms)location.href=acts.dataset.sms;
+    await load()}
   catch(x){b.disabled=false;toast('Failed: '+x.message)}};
+$('list').onchange=e=>{const c=e.target.closest('.gchk');if(!c)return;const k=c.dataset.key;c.checked?selected.add(k):selected.delete(k);bulkUI()};
+$('bulkSelAll').onclick=()=>{lastList.forEach(g=>selected.add(g.key));render()};
+$('bulkClear').onclick=()=>{selected.clear();render()};
+$('bulkConfirm').onclick=async()=>{
+  const ids=[];let skipped=0;
+  selected.forEach(k=>{if(blockedByKey[k])skipped++;else if(idsByKey[k])ids.push(...idsByKey[k])});
+  if(!ids.length){toast(skipped?'All selected bookings are blocked by a conflicting confirmed booking.':'Nothing to confirm.');return}
+  $('bulkConfirm').disabled=$('bulkCancel').disabled=true;
+  try{await rpc('admin_set_status',{p_ids:ids,p_status:'confirmed'});
+    toast(`Confirmed ${ids.length} hour(s)`+(skipped?`, skipped ${skipped} blocked booking(s)`:''));selected.clear();await load()}
+  catch(x){toast('Failed: '+x.message)}
+  $('bulkConfirm').disabled=$('bulkCancel').disabled=false};
+$('bulkCancel').onclick=async()=>{
+  const ids=[];selected.forEach(k=>{if(idsByKey[k])ids.push(...idsByKey[k])});
+  if(!ids.length)return;
+  if(!confirm(`Delete ${selected.size} booking(s)? This cannot be undone.`))return;
+  $('bulkConfirm').disabled=$('bulkCancel').disabled=true;
+  try{await rpc('admin_cancel',{p_ids:ids});toast(`Deleted ${ids.length} hour(s)`);selected.clear();await load()}
+  catch(x){toast('Failed: '+x.message)}
+  $('bulkConfirm').disabled=$('bulkCancel').disabled=false};
 if(sess)load();
 </script>
 </body>
