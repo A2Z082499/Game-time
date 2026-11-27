@@ -189,7 +189,7 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
 <div class="payamt"><span>Amount to pay</span><b id="payAmt"></b></div>
 <img id="payQr" alt="GCash QR code" hidden>
 <div class="paynum"><span class="m">GCash number</span><b id="payNum"></b><span class="m" id="payName"></span><button type="button" class="link" id="payCopy">Copy number</button></div>
-<ol><li>Open GCash, then scan the QR or send to the number above.</li><li>Pay the exact amount shown.</li><li>Send your payment screenshot to us with your name and booking date.</li><li>Your time is reserved only after we confirm your payment. Until then, other players can still request the same time.</li></ol>
+<ol><li>Open GCash, then scan the QR or send to the number above.</li><li>Pay the exact amount shown.</li><li>Send us a screenshot of your payment with your name and booking date.</li><li>Your time is reserved only after we confirm your payment. Until then, other players can still request the same time.</li></ol>
 <a class="cta block" id="payMsg" target="_blank" rel="noopener" hidden>Send screenshot on Messenger</a>
 <div class="payalt"><button type="button" id="payChange">Change time</button><button type="button" class="bad" id="payCancel">Cancel booking</button></div>
 <button type="button" class="link" id="payClose">Close</button>
@@ -197,7 +197,7 @@ select{font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radi
 <script>
 var SUPABASE_URL="https://lgpfgkqjfpkbwbixplee.supabase.co",SUPABASE_KEY="sb_publishable_mTz9KXbimnwuGG4rWwpPuA_hIND2ph9";
 
-var GCASH_NUMBER="0993 802 3008",GCASH_NAME="Mesh'al Q.",GCASH_QR="gcash-qr.jpg",CONTACT_LINK="https://www.facebook.com/profile.php?id=61593185426097";
+var GCASH_NUMBER="0993 802 3008",GCASH_NAME="Mesh'al Q.",GCASH_QR="gcash-qr.jpg",CONTACT_LINK="https://www.facebook.com/profile.php?id=61593237501659";
 const $=id=>document.getElementById(id),OPEN=15,CLOSE=28;
 const ap=h=>(h%24)<12?'AM':'PM',n12=h=>(h%24+11)%12+1;
 const label=h=>ap(h)===ap(h+1)?`${n12(h)}:00-${n12(h+1)}:00 ${ap(h)}`:`${n12(h)}:00 ${ap(h)}-${n12(h+1)}:00 ${ap(h+1)}`;
